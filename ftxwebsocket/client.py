@@ -7,19 +7,23 @@ from itertools import zip_longest
 from typing import DefaultDict, Deque, List, Dict, Tuple, Optional
 from gevent.event import Event
 
-from websocket.websocket_manager import WebsocketManager
+from ftxwebsocket.websocket_manager import WebsocketManager
 
 
 class FtxWebsocketClient(WebsocketManager):
-    _ENDPOINT = 'wss://ftx.com/ws/'
+    _ENDPOINT = 'wss://ftx.us/ws/'
 
     def __init__(self) -> None:
         super().__init__()
-        self._trades: DefaultDict[str, Deque] = defaultdict(lambda: deque([], maxlen=10000))
+        self._trades: DefaultDict[str, Deque] = defaultdict(
+            lambda: deque([], maxlen=10000))
         self._fills: Deque = deque([], maxlen=10000)
-        self._api_key = ''  # TODO: Place your API key here
-        self._api_secret = ''  # TODO: Place your API secret here
-        self._orderbook_update_events: DefaultDict[str, Event] = defaultdict(Event)
+        # TODO: Place your API key here
+        self._api_key = 'obAqJG1_4_qX4deJ-UwVm6drZ89mafGhd9YkNm8l'
+        # TODO: Place your API secret here
+        self._api_secret = '7dqybPY84KtZMxL_YAoKMQlQDNuFPAbbF73a8tI5'
+        self._orderbook_update_events: DefaultDict[str, Event] = defaultdict(
+            Event)
         self._reset_data()
 
     def _on_open(self, ws):
@@ -29,7 +33,8 @@ class FtxWebsocketClient(WebsocketManager):
         self._subscriptions: List[Dict] = []
         self._orders: DefaultDict[int, Dict] = defaultdict(dict)
         self._tickers: DefaultDict[str, Dict] = defaultdict(dict)
-        self._orderbook_timestamps: DefaultDict[str, float] = defaultdict(float)
+        self._orderbook_timestamps: DefaultDict[str, float] = defaultdict(
+            float)
         self._orderbook_update_events.clear()
         self._orderbooks: DefaultDict[str, Dict[str, DefaultDict[float, float]]] = defaultdict(
             lambda: {side: defaultdict(float) for side in {'bids', 'asks'}})
@@ -136,7 +141,8 @@ class FtxWebsocketClient(WebsocketManager):
         checksum = data['checksum']
         orderbook = self.get_orderbook(market)
         checksum_data = [
-            ':'.join([f'{float(order[0])}:{float(order[1])}' for order in (bid, offer) if order])
+            ':'.join(
+                [f'{float(order[0])}:{float(order[1])}' for order in (bid, offer) if order])
             for (bid, offer) in zip_longest(orderbook['bids'][:100], orderbook['asks'][:100])
         ]
 
@@ -164,6 +170,7 @@ class FtxWebsocketClient(WebsocketManager):
         self._orders.update({data['id']: data})
 
     def _on_message(self, ws, raw_message: str) -> None:
+        print(raw_message)
         message = json.loads(raw_message)
         message_type = message['type']
         if message_type in {'subscribed', 'unsubscribed'}:
@@ -185,3 +192,11 @@ class FtxWebsocketClient(WebsocketManager):
             self._handle_fills_message(message)
         elif channel == 'orders':
             self._handle_orders_message(message)
+
+    def _on_error(self, ws, error: Exception) -> None:
+        print("Error:", error)
+        raise error
+
+    def _on_close(self, ws) -> None:
+        print('Connection closed')
+        pass
