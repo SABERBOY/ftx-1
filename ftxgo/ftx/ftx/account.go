@@ -1,7 +1,7 @@
 package ftx
 
 import (
-	"./structs"
+	"ftxgo/ftx/ftx/structs"
 	"log"
 )
 

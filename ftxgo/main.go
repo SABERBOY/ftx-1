@@ -1,14 +1,14 @@
 package main
 
 import (
-	"./ftx"
 	"fmt"
+	"ftxgo/ftx/ftx"
 )
 
 func main() {
 	// Connect to main account, use empty string for main account and subaccount name for a subaccount
 	// API key, API secret, subaccount name
-	client := ftx.New("", "", "")
+	client := ftx.New("obAqJG1_4_qX4deJ-UwVm6drZ89mafGhd9YkNm8l", "7dqybPY84KtZMxL_YAoKMQlQDNuFPAbbF73a8tI5", "saber")
 
 	// Get your Positions
 	// showAvgPrice = true

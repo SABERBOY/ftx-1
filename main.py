@@ -8,7 +8,7 @@ client = FtxClient("obAqJG1_4_qX4deJ-UwVm6drZ89mafGhd9YkNm8l",
                    "7dqybPY84KtZMxL_YAoKMQlQDNuFPAbbF73a8tI5", "saber")
 # account = client.get_account_info()
 # print(account)
-print(client.get_account_info())
+# print(client.get_account_info())
 # print(client.get_all_futures())
 # print(client.get_markets())
 
