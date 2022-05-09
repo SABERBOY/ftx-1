@@ -1,40 +1,48 @@
-import time
-from typing import Optional, Any
-from requests import Request, Session, Response
-from typing import Dict
 import hmac
+import time
+from typing import Any, Dict, Optional
+
+from requests import Request, Response, Session
 
 
 class FtxOtcClient:
-    _ENDPOINT = 'https://otc.ftx.com/api/'
+    _ENDPOINT = "https://otc.ftx.com/api/"
 
     def __init__(self) -> None:
         self._session = Session()
-        self._api_key = '' # TODO: Place your API key here
-        self._api_secret = '' # TODO: Place your API secret here
+        self._api_key = ""  # TODO: Place your API key here
+        self._api_secret = ""  # TODO: Place your API secret here
 
     def _get(self, path: str, params: Optional[Dict[str, Any]] = None) -> Any:
-        return self._request('GET', path, params=params)
+        return self._request("GET", path, params=params)
 
     def _post(self, path: str, params: Optional[Dict[str, Any]] = None) -> Any:
-        return self._request('POST', path, json=params)
+        return self._request("POST", path, json=params)
 
     def _delete(self, path: str) -> Any:
-        return self._request('DELETE', path)
+        return self._request("DELETE", path)
 
-    def request_otc_quote(self, base_currency: str, quote_currency: str, side: str,
-                          base_currency_size: Optional[float] = None,
-                          quote_currency_size: Optional[float] = None,
-                          wait_for_price: bool = True) -> Any:
+    def request_otc_quote(
+        self,
+        base_currency: str,
+        quote_currency: str,
+        side: str,
+        base_currency_size: Optional[float] = None,
+        quote_currency_size: Optional[float] = None,
+        wait_for_price: bool = True,
+    ) -> Any:
         assert (quote_currency_size is None) ^ (base_currency_size is None)
-        return self._post('otc/quotes', {
-            'baseCurrency': base_currency,
-            'quoteCurrency': quote_currency,
-            'baseCurrencySize': base_currency_size,
-            'quoteCurrencySize': quote_currency_size,
-            'waitForPrice': wait_for_price,
-            'side': side,
-        })
+        return self._post(
+            "otc/quotes",
+            {
+                "baseCurrency": base_currency,
+                "quoteCurrency": quote_currency,
+                "baseCurrencySize": base_currency_size,
+                "quoteCurrencySize": quote_currency_size,
+                "waitForPrice": wait_for_price,
+                "side": side,
+            },
+        )
 
     def _request(self, method: str, path: str, **kwargs) -> Any:
         request = Request(method, self._ENDPOINT + path, **kwargs)
@@ -45,13 +53,15 @@ class FtxOtcClient:
     def _sign_request(self, request: Request, path: str) -> None:
         ts = int(time.time() * 1000)
         prepared = request.prepare()
-        signature_payload = f'{ts}{prepared.method}/{path}'.encode()
+        signature_payload = f"{ts}{prepared.method}/{path}".encode()
         if prepared.body:
             signature_payload += prepared.body
-        signature = hmac.new(self._api_secret.encode(), signature_payload, 'sha256').hexdigest()
-        request.headers['FTX-APIKEY'] = self._api_key
-        request.headers['FTX-TIMESTAMP'] = str(ts)
-        request.headers['FTX-SIGNATURE'] = signature
+        signature = hmac.new(
+            self._api_secret.encode(), signature_payload, "sha256"
+        ).hexdigest()
+        request.headers["FTX-APIKEY"] = self._api_key
+        request.headers["FTX-TIMESTAMP"] = str(ts)
+        request.headers["FTX-SIGNATURE"] = signature
 
     def _process_response(self, response: Response) -> Any:
         try:
@@ -60,9 +70,9 @@ class FtxOtcClient:
             response.raise_for_status()
             raise
         else:
-            if not data['success']:
-                raise Exception(data['error'])
-            return data['result']
+            if not data["success"]:
+                raise Exception(data["error"])
+            return data["result"]
 
     def get_balances(self):
-        return self._get('balances')
+        return self._get("balances")

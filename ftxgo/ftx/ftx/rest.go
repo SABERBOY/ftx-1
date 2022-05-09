@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-const URL = "https://ftx.com/api/"
+const URL = "https://ftx.us/api/"
 
 func (client *FtxClient) signRequest(method string, path string, body []byte) *http.Request {
 	ts := strconv.FormatInt(time.Now().UTC().Unix()*1000, 10)

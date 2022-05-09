@@ -1,12 +1,12 @@
 import json
 import time
-from threading import Thread, Lock
+from threading import Lock, Thread
 
 from websocket import WebSocketApp
 
 
 class WebsocketManager:
-    _CONNECT_TIMEOUT_S = 5
+    _CONNECT_TIMEOUT_S = 5000
 
     def __init__(self):
         self.connect_lock = Lock()
@@ -33,6 +33,8 @@ class WebsocketManager:
             on_message=self._wrap_callback(self._on_message),
             on_close=self._wrap_callback(self._on_close),
             on_error=self._wrap_callback(self._on_error),
+            on_ping=self._wrap_callback(self._on_ping),
+            on_cont_message=self._wrap_callback(self._on_message),
         )
 
         wst = Thread(target=self._run_websocket, args=(self.ws,))
@@ -53,19 +55,20 @@ class WebsocketManager:
                 try:
                     f(ws, *args, **kwargs)
                 except Exception as e:
-                    raise Exception(f'Error running websocket callback: {e}')
+                    raise Exception(f"Error running websocket callback: {e}")
+
         return wrapped_f
 
     def _run_websocket(self, ws):
         try:
             ws.run_forever()
         except Exception as e:
-            raise Exception(f'Unexpected error while running websocket: {e}')
+            raise Exception(f"Unexpected error while running websocket: {e}")
         finally:
             self._reconnect(ws)
 
     def _reconnect(self, ws):
-        assert ws is not None, '_reconnect should only be called with an existing ws'
+        assert ws is not None, "_reconnect should only be called with an existing ws"
         if ws is self.ws:
             self.ws = None
             ws.close()
@@ -85,6 +88,12 @@ class WebsocketManager:
 
     def _on_error(self, ws, error):
         self._reconnect(ws)
+
+    def _on_ping(self, ws, error):
+        print("ping")
+
+    def _on_message(self, ws, error):
+        print("_on_message")
 
     def reconnect(self) -> None:
         if self.ws is not None:
